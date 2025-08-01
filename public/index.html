@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Shortener</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(120deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 600px;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    form {
+      margin-top: 1rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #ffffff;
+      color: #333;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ffd369;
+      transform: translateY(-2px);
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+
+    li {
+      background-color: rgba(255, 255, 255, 0.15);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    li:hover {
+      background-color: rgba(255, 255, 255, 0.25);
+    }
+
+    a {
+      color: #ffd369;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 1rem;
+      }
+
+      input, button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔗 URL Shortener</h1>
+    <form id="shortner-form">
+      <label for="url">Enter URL:</label>
+      <input type="url" id="url" name="url" placeholder="https://example.com" required />
+
+      <label for="shortcode">Enter Short Code:</label>
+      <input type="text" id="shortcode" name="shortcode" placeholder="mycode123" required />
+
+      <button type="submit">Shorten URL</button>
+    </form>
+
+    <h2>📋 Shortened Links</h2>
+    <ul id="shorten-URLs"></ul>
+  </div>
+
+  <script>
+    async function fetchShortenedURL() {
+      try {
+        const res = await fetch("/links");
+        const links = await res.json();
+        const list = document.getElementById("shorten-URLs");
+        list.innerHTML = "";
+
+        for (const [code, url] of Object.entries(links)) {
+          const li = document.createElement("li");
+          li.innerHTML = `<a href="${url}" target="_blank">${window.location.origin}/${code}</a> → ${url}`;
+          list.appendChild(li);
+        }
+      } catch (err) {
+        console.error("Fetch Error:", err);
+      }
+    }
+
+    document.getElementById("shortner-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const url = form.get("url");
+      const shortcode = form.get("shortcode");
+
+      try {
+        const res = await fetch("/shorten", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, shortcode })
+        });
+
+        if (res.ok) {
+          alert("✅ URL Shortened!");
+          e.target.reset();
+          fetchShortenedURL();
+        } else {
+          const err = await res.text();
+          alert("❌ Error: " + err);
+        }
+      } catch (err) {
+        console.error("Submit Error:", err);
+      }
+    });
+
+    fetchShortenedURL();
+  </script>
+</body>
+</html>
